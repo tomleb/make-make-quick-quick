@@ -1,0 +1,17 @@
+# Taken from https://github.com/rancher/rancher/blob/4a27e55ae0a51ca6b75d0c6aaadcb2362688acb0/package/Dockerfile#L3-L16
+
+FROM registry.suse.com/bci/bci-micro:15.6 AS final
+
+# Temporary build stage image
+FROM registry.suse.com/bci/bci-base:15.6 AS tools
+
+# Install system packages using builder image that has zypper
+COPY --from=final / /chroot/
+
+# Install some packages with zypper in the chroot of the final micro image
+RUN zypper refresh && \
+    zypper --installroot /chroot -n in --no-recommends \
+    git-core curl util-linux ca-certificates ca-certificates-mozilla unzip xz gzip sed tar shadow gawk vim-small \
+    netcat-openbsd mkisofs openssh-clients openssl patterns-base-fips && \
+    zypper --installroot /chroot clean -a && \
+    rm -rf /chroot/var/cache/zypp/* /chroot/var/log/zypp/* /chroot/tmp/* /chroot/var/tmp/* /chroot/usr/share/doc/packages/*

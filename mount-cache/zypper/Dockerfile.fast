@@ -1,0 +1,16 @@
+# Taken from https://github.com/rancher/rancher/blob/4a27e55ae0a51ca6b75d0c6aaadcb2362688acb0/package/Dockerfile#L3-L16
+
+FROM registry.suse.com/bci/bci-micro:15.6 AS final
+
+FROM registry.suse.com/bci/bci-base:15.6 AS tools
+COPY --from=final / /chroot/
+
+# Cache packages download (.rpm) since by default they get removed after installed
+RUN zypper modifyrepo --keep-packages --all
+
+# Install some packages with zypper in the chroot of the final micro image
+RUN --mount=type=cache,target=/var/cache/zypp,sharing=locked,id=demo-zypper zypper refresh && \
+    zypper --installroot /chroot -n in --no-recommends \
+    git-core curl util-linux ca-certificates ca-certificates-mozilla unzip xz gzip sed tar shadow vim-small \
+    netcat-openbsd mkisofs openssh-clients openssl patterns-base-fips && \
+    rm -rf /chroot/var/cache/zypp/* /chroot/var/log/zypp/* /chroot/tmp/* /chroot/var/tmp/* /chroot/usr/share/doc/packages/*
