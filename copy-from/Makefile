@@ -1,5 +1,14 @@
+IMAGE = copy-from
+
 image-build:
-	docker buildx build -f $(DOCKERFILE) -t copy-from:$(TAG) $(EXTRA_PARAMS) .
+	@echo "####################################################"
+	@echo "#"
+	@echo "# Running the following command:"
+	@echo "#   docker buildx build -f $(DOCKERFILE) -t $(IMAGE):$(TAG) $(EXTRA_PARAMS) ."
+	@echo "#"
+	@echo "####################################################"
+	@echo ""
+	@docker buildx build -f $(DOCKERFILE) -t $(IMAGE):$(TAG) $(EXTRA_PARAMS) .
 
 fast:
 	$(MAKE) DOCKERFILE=Dockerfile.fast TAG=fast

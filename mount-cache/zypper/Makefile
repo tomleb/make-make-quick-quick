@@ -1,5 +1,15 @@
+IMAGE = mount-cache-zypper
+
 image-build:
-	docker buildx build -f $(DOCKERFILE) -t mount-cache-zypper:$(TAG) $(EXTRA_PARAMS) .
+	@echo "####################################################"
+	@echo "#"
+	@echo "# Running the following command:"
+	@echo "#   docker buildx build -f $(DOCKERFILE) -t $(IMAGE):$(TAG) $(EXTRA_PARAMS) ."
+	@echo "#"
+	@echo "####################################################"
+	@echo ""
+	@docker buildx build -f $(DOCKERFILE) -t $(IMAGE):$(TAG) $(EXTRA_PARAMS) .
+
 
 fast:
 	$(MAKE) DOCKERFILE=Dockerfile.fast TAG=fast
