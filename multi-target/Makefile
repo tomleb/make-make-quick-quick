@@ -1,12 +1,15 @@
+IMAGE = multi-target
+
 image-build:
 	@echo "####################################################"
 	@echo "#"
 	@echo "# Running the following command:"
-	@echo "#   docker buildx build -f $(DOCKERFILE) -t multi-target:$(TAG) $(EXTRA_PARAMS) ."
+	@echo "#   docker buildx build -f $(DOCKERFILE) -t $(IMAGE):$(TAG) $(EXTRA_PARAMS) ."
 	@echo "#"
 	@echo "####################################################"
 	@echo ""
-	@docker buildx build -f $(DOCKERFILE) -t multi-target:$(TAG) $(EXTRA_PARAMS) .
+	@docker buildx build -f $(DOCKERFILE) -t $(IMAGE):$(TAG) $(EXTRA_PARAMS) .
+
 
 server:
 	$(MAKE) DOCKERFILE=Dockerfile.server TAG=server
