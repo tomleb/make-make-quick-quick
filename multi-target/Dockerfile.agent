@@ -1,7 +1,7 @@
 ARG IMAGE=server
 
 # For subset of Rancher
-FROM ${IMAGE} as rancher
+FROM ${IMAGE} AS rancher
 
 FROM registry.suse.com/bci/bci-base:15.6
 COPY --from=rancher /var/lib/rancher-data /var/lib/rancher-data
