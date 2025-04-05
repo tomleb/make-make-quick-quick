@@ -1,6 +1,6 @@
 FROM --platform=$BUILDPLATFORM registry.suse.com/bci/golang:1.23 AS images
 
-ENV CATTLE_K3S_VERSION v1.32.1+k3s1
+ENV CATTLE_K3S_VERSION=v1.32.1+k3s1
 
 RUN zypper -n install libbtrfs-devel libgpgme-devel
 
@@ -17,5 +17,6 @@ COPY hack/airgap/ /src/
 RUN --mount=type=cache,target=/root/.cache,id=demo du -hs /root/.cache
 RUN --mount=type=cache,target=/root/.cache,id=demo go build -tags k3s_export -o export-images ./...
 RUN --mount=type=cache,target=/root/.cache,id=demo du -hs /root/.cache
+
 RUN ./export-images -k3s-version ${CATTLE_K3S_VERSION} -output /src/k3s-airgap-images.tar
 

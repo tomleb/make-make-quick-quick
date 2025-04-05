@@ -24,7 +24,6 @@ import (
 )
 
 var (
-	// hi
 	maxDownloadSize int64 = 1 << 20 // 1MB
 	requestTimeout        = 30 * time.Second
 
@@ -48,6 +47,9 @@ func main() {
 	if reexec.Init() {
 		return
 	}
+
+	a := 5
+	_ = a
 
 	version, output := "", ""
 
