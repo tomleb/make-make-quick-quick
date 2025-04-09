@@ -27,7 +27,7 @@ RUN mkdir -p /var/lib/rancher-data/local-catalogs/v2 && \
     git config --global url."https://github.com/rancher/".insteadOf https://git.rancher.io/ && \
     git clone --no-checkout -b $RKE2_CHART_DEFAULT_BRANCH --depth 1 https://git.rancher.io/rke2-charts /var/lib/rancher-data/local-catalogs/v2/rancher-rke2-charts/675f1b63a0a83905972dcab2794479ed599a6f41b86cd6193d69472d0fa889c9
 
-FROM --platform=$BUILDPLATFORM platform-tools AS tini
+FROM platform-tools AS tini
 ARG TARGETARCH
 ENV TINI_VERSION=v0.18.0
 ENV TINI_URL_amd64=https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini \
@@ -37,7 +37,7 @@ ENV TINI_URL_amd64=https://github.com/krallin/tini/releases/download/${TINI_VERS
 RUN curl -sLf ${!TINI_URL} > /usr/bin/tini && \
     chmod +x /usr/bin/tini
 
-FROM --platform=$BUILDPLATFORM platform-tools AS etcd
+FROM platform-tools AS etcd
 ARG TARGETARCH
 ENV CATTLE_ETCD_VERSION=v3.5.15
 ENV ETCD_URL=https://github.com/etcd-io/etcd/releases/download/${CATTLE_ETCD_VERSION}/etcd-${CATTLE_ETCD_VERSION}-linux-${TARGETARCH}.tar.gz
