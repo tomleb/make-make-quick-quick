@@ -1,0 +1,87 @@
+##########
+# Demo 1 (cache mount)
+##########
+
+cd mount-cache/go
+ls hack/airgap
+
+nvim Dockerfile.slow
+
+# quick mention
+nvim Makefile
+
+# Kill any cache
+make prune
+
+# make slow (~50s)
+# See longest commands are:
+# go mod download and go build
+make slow
+nvim hack/airgap/main.go
+# (~30s)
+make slow
+
+# Look at host build
+export GOCACHE=$(mktemp -d)
+# Slow (~30 secs)
+(cd hack/airgap && time go build -tags k3s_export -o export-images ./...)
+nvim hack/airgap/main.go
+# Fast (~2 secs)
+(cd hack/airgap && time go build -tags k3s_export -o export-images ./...)
+
+
+# Look at fast
+nvim Dockerfile.fast
+make fast
+nvim hack/airgap/main.go
+make fast
+nvim hack/airgap/go.mod
+(cd hack/airgap && go mod tidy)
+make fast
+
+# Look at fastdebug
+nvim Dockerfile.fastdebug
+make prune
+make fastdebug
+nvim hack/airgap/go.mod
+(cd hack/airgap && go mod tidy)
+make fastdebug
+
+docker buildx du --verbose --filter=type=exec.cachemount
+
+# Quickly go over zypper
+
+
+
+
+
+
+##########
+# Demo 2 (copy from)
+##########
+
+nvim Dockerfile.slow
+make slow
+make slow-2.10
+make slow-2.9
+
+nvim Dockerfile.fast
+make fast
+make fast-2.10
+make fast-2.9
+
+
+
+
+
+
+##########
+# Demo 3 (single dockerfile)
+##########
+
+nvim Dockerfile.server
+nvim Dockerfile.agent
+# See takes 10 seconds total instead of say just 5
+make agent
+nvim Dockerfile.multi
+make multi-agent
