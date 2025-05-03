@@ -10,7 +10,7 @@ ARG BAR_DEP_PATH
 # Intermediate stage which one of:
 # - scratch image, meaning empty
 # - contains the context for bar (local dir)
-FROM --platform=$BUILDPLATFORM ${BAR_DEP} as bar-dep
+FROM --platform=$BUILDPLATFORM ${BAR_DEP} AS bar-dep
 
 
 FROM --platform=$BUILDPLATFORM registry.suse.com/bci/golang:1.24 AS foo-build
