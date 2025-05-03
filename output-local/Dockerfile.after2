@@ -1,0 +1,32 @@
+FROM --platform=$BUILDPLATFORM registry.suse.com/bci/golang:1.24 AS build
+WORKDIR /src
+ENV GOMODCACHE=/root/.cache/go/mod-cache
+ENV GOCACHE=/root/.cache/go/cache
+ENV CGO_ENABLED=0
+COPY go.mod go.sum .
+RUN --mount=type=cache,target=/root/.cache,id=demo go mod download -x
+COPY . .
+ARG TARGETOS
+ARG TARGETARCH
+RUN --mount=type=cache,target=/root/.cache,id=demo GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /usr/bin/foo -ldflags="-extldflags '-static' -w" ./
+
+
+FROM scratch AS binary
+COPY --from=build /usr/bin/foo /build/bin/foo
+
+
+FROM --platform=$BUILDPLATFORM registry.suse.com/bci/bci-base:15.6 AS helm-chart-build
+RUN zypper -n install git less file curl wget awk
+ARG BUILDARCH
+ENV HELM_VERSION=v3.17.1
+RUN curl -sL https://get.helm.sh/helm-${HELM_VERSION}-linux-${BUILDARCH}.tar.gz | tar xvzf - -C /usr/local/bin --strip-components=1
+COPY charts/ charts/
+RUN helm package -d ./dist/artifacts ./charts/foo
+
+FROM scratch AS helm-chart
+COPY --from=helm-chart-build /dist /build/dist
+
+
+FROM registry.suse.com/bci/bci-micro:15.6 AS final
+COPY --from=build /usr/bin/foo /usr/bin/foo
+ENTRYPOINT ["/usr/bin/foo"]

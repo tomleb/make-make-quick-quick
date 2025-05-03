@@ -1,0 +1,51 @@
+FROM --platform=$BUILDPLATFORM registry.suse.com/bci/golang:1.24 AS go
+WORKDIR /src
+ENV GOMODCACHE=/root/.cache/go/mod-cache
+ENV GOCACHE=/root/.cache/go/cache
+ENV CGO_ENABLED=0
+COPY go.mod go.sum .
+RUN --mount=type=cache,target=/root/.cache,id=demo go mod download -x
+
+
+FROM --platform=$BUILDPLATFORM go AS build
+COPY . .
+ARG TARGETOS
+ARG TARGETARCH
+RUN --mount=type=cache,target=/root/.cache,id=demo GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /usr/bin/foo -ldflags="-extldflags '-static' -w" ./
+
+FROM scratch AS binary
+COPY --from=build /usr/bin/foo /build/bin/foo
+
+
+FROM --platform=$BUILDPLATFORM go AS build-codegen
+COPY . .
+RUN --mount=type=cache,target=/root/.cache,id=demo go generate ./...
+
+FROM scratch AS codegen
+COPY --from=build-codegen /src /
+
+
+FROM go AS build-test
+RUN go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+COPY . .
+RUN --mount=type=cache,target=/root/.cache,id=demo set -o pipefail && KUBEBUILDER_ASSETS=$(setup-envtest use -p path) go test -v  -coverprofile coverage.txt ./... 2>&1 | tee result.txt
+
+FROM scratch AS unit-tests
+COPY --from=build-test /src/result.txt /src/coverage.txt /build/tests-results/
+
+
+FROM --platform=$BUILDPLATFORM registry.suse.com/bci/bci-base:15.6 AS helm-chart-build
+RUN zypper -n install git less file curl wget awk
+ARG BUILDARCH
+ENV HELM_VERSION=v3.17.1
+RUN curl -sL https://get.helm.sh/helm-${HELM_VERSION}-linux-${BUILDARCH}.tar.gz | tar xvzf - -C /usr/local/bin --strip-components=1
+COPY charts/ charts/
+RUN helm package -d ./dist/artifacts ./charts/foo
+
+FROM scratch AS helm-chart
+COPY --from=helm-chart-build /dist /build/dist
+
+
+FROM registry.suse.com/bci/bci-micro:15.6 AS final
+COPY --from=build /usr/bin/foo /usr/bin/foo
+ENTRYPOINT ["/usr/bin/foo"]
