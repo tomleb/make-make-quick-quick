@@ -1,0 +1,13 @@
+FROM --platform=$BUILDPLATFORM registry.suse.com/bci/golang:1.24 AS foo-build
+WORKDIR /src
+ENV GOMODCACHE=/root/.cache/go/mod-cache
+ENV GOCACHE=/root/.cache/go/cache
+COPY go.mod go.sum .
+RUN --mount=type=cache,target=/root/.cache,id=demo go mod download -x
+COPY . .
+RUN --mount=type=cache,target=/root/.cache,id=demo go build -o /usr/bin/foo ./...
+
+
+FROM registry.suse.com/bci/bci-micro:15.6 AS final
+COPY --from=foo-build /usr/bin/foo /usr/bin/foo
+ENTRYPOINT ["/usr/bin/foo"]

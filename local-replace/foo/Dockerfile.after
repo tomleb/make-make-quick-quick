@@ -1,0 +1,34 @@
+ARG BUILD_WORKDIR=/src
+
+# BAR_DEP is the image (or context) that the intermediate stage `bar-dep` will
+# pull from
+ARG BAR_DEP=scratch
+# BAR_DEP_PATH is the path to copy the content to
+ARG BAR_DEP_PATH
+
+
+# Intermediate stage which one of:
+# - scratch image, meaning empty
+# - contains the context for bar (local dir)
+FROM --platform=$BUILDPLATFORM ${BAR_DEP} as bar-dep
+
+
+FROM --platform=$BUILDPLATFORM registry.suse.com/bci/golang:1.24 AS foo-build
+
+ARG BUILD_WORKDIR
+WORKDIR ${BUILD_WORKDIR}
+ARG BAR_DEP_PATH
+COPY --from=bar-dep / ${BAR_DEP_PATH}
+
+ENV GOMODCACHE=/root/.cache/go/mod-cache
+ENV GOCACHE=/root/.cache/go/cache
+
+COPY go.mod go.sum .
+RUN --mount=type=cache,target=/root/.cache,id=demo go mod download -x
+COPY . .
+RUN --mount=type=cache,target=/root/.cache,id=demo go build -o /usr/bin/foo ./...
+
+
+FROM registry.suse.com/bci/bci-micro:15.6 AS final
+COPY --from=foo-build /usr/bin/foo /usr/bin/foo
+ENTRYPOINT ["/usr/bin/foo"]
