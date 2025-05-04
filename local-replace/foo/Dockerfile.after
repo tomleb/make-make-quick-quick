@@ -26,7 +26,9 @@ ENV GOCACHE=/root/.cache/go/cache
 COPY go.mod go.sum .
 RUN --mount=type=cache,target=/root/.cache,id=demo go mod download -x
 COPY . .
-RUN --mount=type=cache,target=/root/.cache,id=demo go build -o /usr/bin/foo ./...
+ARG TARGETOS
+ARG TARGETARCH
+RUN --mount=type=cache,target=/root/.cache,id=demo GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /usr/bin/foo -ldflags="-extldflags '-static' -w" ./
 
 
 FROM registry.suse.com/bci/bci-micro:15.6 AS final
