@@ -1,5 +1,8 @@
 IMAGE = output-local
 
+BUILD_OS = $(shell go env GOOS)
+BUILD_ARCH = $(shell go env GOARCH)
+
 image-build:
 	@echo "####################################################"
 	@echo "#"
@@ -17,7 +20,7 @@ after:
 	$(MAKE) DOCKERFILE=Dockerfile.after TAG=after
 
 binary:
-	$(MAKE) DOCKERFILE=Dockerfile.after TAG=after EXTRA_PARAMS="--target=binary --output=type=local,dest=$(PWD)"
+	$(MAKE) DOCKERFILE=Dockerfile.after TAG=after EXTRA_PARAMS="--target=binary --output=type=local,dest=$(PWD) --platform=$(BUILD_OS)/$(BUILD_ARCH)"
 
 helm-chart:
 	$(MAKE) DOCKERFILE=Dockerfile.after2 TAG=after EXTRA_PARAMS="--target=helm-chart --output=type=local,dest=$(PWD)"
