@@ -22,7 +22,6 @@ COPY --from=bar-dep / ${BAR_DEP_PATH}
 
 ENV GOMODCACHE=/root/.cache/go/mod-cache
 ENV GOCACHE=/root/.cache/go/cache
-
 COPY go.mod go.sum .
 RUN --mount=type=cache,target=/root/.cache,id=demo go mod download -x
 COPY . .

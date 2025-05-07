@@ -21,7 +21,7 @@ ARG BUILDARCH
 ENV HELM_VERSION=v3.17.1
 RUN curl -sL https://get.helm.sh/helm-${HELM_VERSION}-linux-${BUILDARCH}.tar.gz | tar xvzf - -C /usr/local/bin --strip-components=1
 COPY charts/ charts/
-RUN helm package -d ./dist/artifacts ./charts/foo
+RUN helm package -d /dist/artifacts ./charts/foo
 
 FROM scratch AS helm-chart
 COPY --from=helm-chart-build /dist /build/dist
